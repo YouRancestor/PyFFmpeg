@@ -24,6 +24,7 @@ static int get_format_from_sample_fmt(const char **fmt,
     { AV_SAMPLE_FMT_S32, "s32be", "s32le" },
     { AV_SAMPLE_FMT_FLT, "f32be", "f32le" },
     { AV_SAMPLE_FMT_DBL, "f64be", "f64le" },
+    { AV_SAMPLE_FMT_FLTP, "f32be", "f32le" },
 };
     *fmt = NULL;
     for (i = 0; i < FF_ARRAY_ELEMS(sample_fmt_entries); i++) {
@@ -53,17 +54,13 @@ MyAudioFrame GetFrameDataFromAVFrame(AVCodecContext* avctx, AVFrame* avframe)
 {
     MyAudioFrame frame;
     frame.data = avframe->extended_data[0];
-    frame.size = avframe->linesize[0] / 4;
+    frame.size = avframe->linesize[0];
     frame.sample_rate = avframe->sample_rate;
     frame.samples = avframe->nb_samples;
     get_format_from_sample_fmt(&frame.fmt,avctx->sample_fmt);
     return frame;
 }
 
-MyAudioFrame GetFrame(AVCodecContext* avctx)
-{
-
-}
 
 int OpenDecoder(AVFormatContext *ic, AVCodecContext *avctx)
 {

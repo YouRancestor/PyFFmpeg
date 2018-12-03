@@ -3,7 +3,7 @@ from ctypes.util import find_library
 
 class MyAudioFrame(Structure):
     _fields_ = [
-        ("data", POINTER(c_float)),
+        ("data", POINTER(c_int8)),
         ("len", c_int),
         ("sample_rate", c_int),
         ("samples", c_int),
@@ -99,10 +99,10 @@ if __name__ == '__main__':
             
             
             for i in range(frame.len):
-                print("frame[%d]: %e"%(i,pointer(frame.data.contents)[i]))
+                data = frame.data[i]
 
 
-            # NOTE: don't access frame after free avfame
+            # NOTE: don't access frame after free avframe
             libavcodec.av_frame_free(byref(avframe))
         
         libavformat.av_packet_free(byref(pkt))
