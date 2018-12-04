@@ -1,17 +1,7 @@
 from ctypes import *
 from ctypes.util import find_library
 
-class MyAudioFrame(Structure):
-    _fields_ = [
-        ("data", POINTER(c_int8)),
-        ("len", c_int),
-        ("sample_rate", c_int),
-        ("samples", c_int),
-        ("format", c_char_p)
-    ]
-    # def __init__(self):
-    #     self._as_parameter_ = POINTER(MyAudioFrame)
-
+from ffhelper import MyAudioFrame
 
 sz_avcodec = find_library("avcodec")
 libavcodec = CDLL(sz_avcodec)
@@ -31,6 +21,94 @@ import os
 sz_ff_helper = os.environ['PWD']+'/libffmpeg-helper.so'
 libffhelper = CDLL(sz_ff_helper)
 print(libffhelper)
+
+# void av_register_all();
+libavformat.av_register_all.argtypes = []
+def av_register_all():
+    libavformat.av_register_all()
+
+# int avformat_open_input(AVFormatContext **ps, const char *url, AVInputFormat *fmt, AVDictionary **options);
+libavformat.avformat_open_input.argtypes = [POINTER(c_void_p), c_char_p, c_void_p, POINTER(c_void_p)]
+libavformat.avformat_open_input.restype = c_int
+def avformat_open_input(pp_ic: POINTER(c_void_p), p_file_name: c_char_p, p_fmt: c_void_p, pp_options: POINTER(c_void_p)):
+    libavformat.avformat_open_input(pp_ic, p_file_name, p_fmt, pp_options)
+
+
+# AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
+avcodec_alloc_context3 = libavcodec.avcodec_alloc_context3
+avcodec_alloc_context3.argtypes = [c_void_p]
+avcodec_alloc_context3.restype = c_void_p
+
+# int avcodec_parameters_to_context(AVCodecContext *ctx,
+#                                   const AVCodecParameters *par);
+libavcodec.avcodec_parameters_to_context.argtypes = [c_void_p, c_void_p]
+def avcodec_parameters_to_context(p_avctx: c_void_p, p_param: c_void_p):
+    return libavcodec.avcodec_parameters_to_context(p_avctx, p_param)
+
+# AVCodec *avcodec_find_decoder(enum AVCodecID id);
+libavcodec.avcodec_find_decoder.argtypes = [c_int]
+libavcodec.avcodec_find_decoder.restype = c_void_p
+def avcodec_find_decoder(codec_id: c_int):
+    return libavcodec.avcodec_find_decoder(codec_id)
+
+# int avcodec_open2(AVCodecContext *avctx, const AVCodec *codec, AVDictionary **options);
+libavcodec.avcodec_open2.argtypes = [c_void_p, c_void_p, POINTER(c_void_p)]
+libavcodec.avcodec_open2.restype = c_int
+def avcodec_open2(p_avctx: c_void_p, p_codec: c_void_p, pp_options: POINTER(c_void_p)):
+    return libavcodec.avcodec_open2(p_avctx, p_codec, pp_options)
+
+# AVPacket *av_packet_alloc(void);
+libavcodec.av_packet_alloc.argtypes = []
+libavcodec.av_packet_alloc.restype = c_void_p
+def av_packet_alloc():
+    return libavcodec.av_packet_alloc()
+
+# void av_packet_free(AVPacket **pkt);
+libavformat.av_packet_free.argtypes = [POINTER(c_void_p)]
+def av_packet_free(pp_pkt: POINTER(c_void_p)):
+    libavformat.av_packet_free(pp_pkt)
+
+# int av_read_frame(AVFormatContext *s, AVPacket *pkt);
+libavformat.av_read_frame.argtypes = [c_void_p, c_void_p]
+def av_read_frame(p_ic: c_void_p, p_pkt: c_void_p):
+    libavformat.av_read_frame(p_ic, p_pkt)
+
+# int av_read_frame(AVFormatContext *s, AVPacket *pkt);
+libavcodec.avcodec_send_packet.argtypes = [c_void_p, c_void_p]
+libavcodec.avcodec_send_packet.restype = c_int
+def avcodec_send_packet(p_avctx: c_void_p, p_pkt: c_void_p):
+    return libavcodec.avcodec_send_packet(p_avctx, p_pkt)
+
+# AVFrame *av_frame_alloc(void);
+libavutil.av_frame_alloc.argtypes = []
+libavutil.av_frame_alloc.restype = c_void_p
+def av_frame_alloc():
+    return libavutil.av_frame_alloc()
+
+# void av_frame_free(AVFrame **frame);
+libavutil.av_frame_free.argtypes = [POINTER(c_void_p)]
+def av_frame_free(pp_pkt: POINTER(c_void_p)):
+    libavutil.av_frame_free(pp_pkt)
+
+# int avcodec_receive_frame(AVCodecContext *avctx, AVFrame *frame);
+libavcodec.avcodec_receive_frame.argtypes = [c_void_p, c_void_p]
+libavcodec.avcodec_receive_frame.restype = c_int
+def avcodec_receive_frame(p_avctx: c_void_p, p_avframe: c_void_p):
+    return libavcodec.avcodec_receive_frame(p_avctx, p_avframe)
+
+
+# void avcodec_free_context(AVCodecContext **avctx);
+libavcodec.avcodec_free_context.argtypes = [POINTER(c_void_p)]
+def avcodec_free_context(pp_avctx: POINTER(c_void_p)):
+    libavcodec.avcodec_free_context(pp_avctx)
+
+# void avformat_free_context(AVFormatContext *s);
+libavformat.avformat_free_context.argtypes = [c_void_p]
+def avformat_free_context(p_ic: c_void_p):
+    libavformat.avformat_free_context(p_ic)
+
+EAGAIN = -11
+AVERROR_EOF = -541478725
 
 if __name__ == '__main__':
     # ver = Version()
@@ -53,12 +131,23 @@ if __name__ == '__main__':
     avctx.value = libavcodec.avcodec_alloc_context3(None)
     print('allocated AVCodecContext: ', avctx)
 
-    ret = libffhelper.OpenDecoder(ic, avctx)
+    codec_params = c_void_p()
+    codec_params.value = libffhelper.GetCodecParamFromFormatContext(ic)
+    print('AVCodecParameters: ', codec_params)
+    libavcodec.avcodec_parameters_to_context(avctx, codec_params)
+    codec_id = libffhelper.GetCodecIdFromCodecContext(avctx)
+    print('Codec Id: ', codec_id)
+    codec = c_void_p()
+    libavcodec.avcodec_find_decoder.restype = c_void_p
+    codec.value = libavcodec.avcodec_find_decoder(codec_id)
+    print('codec found: 0x%x'%codec.value)
+    print('codec contex: 0x%x'%avctx.value)
+    ret = libavcodec.avcodec_open2(avctx, codec, None)
+    print('avcodec_open2 returned: ', ret)
+
 
     assert(ret == 0)
 
-    EAGAIN = -11
-    AVERROR_EOF = -541478725
 
     count = 0
 
