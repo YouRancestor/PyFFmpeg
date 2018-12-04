@@ -1,7 +1,6 @@
 from ctypes import *
 from ctypes.util import find_library
 
-from ffhelper import MyAudioFrame
 
 sz_avcodec = find_library("avcodec")
 libavcodec = CDLL(sz_avcodec)
@@ -117,6 +116,8 @@ if __name__ == '__main__':
     # libffhelper.test.restype = MyAudioFrame
     # frame = libffhelper.test()
     # print(frame.len)
+    from ffhelper import MyAudioFrame
+
     sz = b'/home/bmi/Desktop/00001.m4a'
     print('media file name: ', sz)
     filename = c_char_p(sz)
@@ -179,7 +180,7 @@ if __name__ == '__main__':
             count+=1
             print(count)
 
-            frame = MyAudioFrame()
+            # frame = MyAudioFrame()
             libffhelper.GetFrameDataFromAVFrame.restype = MyAudioFrame
             libffhelper.GetFrameDataFromAVFrame.argtypes = [c_void_p, c_void_p]
             frame = libffhelper.GetFrameDataFromAVFrame(avctx, avframe)

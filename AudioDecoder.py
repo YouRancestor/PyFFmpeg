@@ -2,20 +2,6 @@ from ffmpeg import *
 
 from ffhelper import *
 
-# class FFAudioPacket():
-#     def __init__(self):
-#         self.__avpkt = av_packet_alloc()
-#         self._as_parameter_ = self.__avpkt
-#     def __del__(self):
-#         av_packet_free(byref(self.__avpkt))
-
-# class FFAudioFrame():
-#     def __init__(self):
-#         self.__avframe = av_frame_alloc()
-#         self._as_parameter_ = self.__avframe
-#     def __del__(self):
-#         av_frame_free(byref(self.__avframe))
-
 class AudioFrame(MyAudioFrame):
     def __init__(self, avframe: c_void_p):
         self.__src_avframe = c_void_p()
@@ -50,7 +36,7 @@ class AudioDecoder():
 
     def get_frame(self):
         pkt = c_void_p(None)
-        pkt = av_packet_alloc()
+        pkt.value = av_packet_alloc()
         if(av_read_frame(self.__ic, pkt)):
             av_packet_free(byref(pkt))
             raise IOError("Read error, may reach end of file.")
@@ -67,8 +53,16 @@ class AudioDecoder():
             return None
         
         frame = AudioFrame(avframe)
-        frame.value = get_frame_data_from_avframe(self.__avctx, avframe)
+        frame1 = get_frame_data_from_avframe(self.__avctx, avframe)
+        
+        # FIXME
+        frame.data          = frame1.data
+        frame.len           = frame1.len
+        frame.sample_rate   = frame1.sample_rate
+        frame.samples       = frame1.samples
+        frame.format        = frame1.format
 
+        av_packet_free(byref(pkt))
         return frame
 
     def __del__(self):

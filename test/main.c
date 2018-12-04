@@ -22,7 +22,7 @@ int main(int argc, char**argv)
         AVPacket* pkt = av_packet_alloc();
         if(av_read_frame(ic, pkt) < 0)
         {
-            av_packet_free(pkt);
+            av_packet_free(&pkt);
             break;
         }
 
@@ -36,7 +36,7 @@ int main(int argc, char**argv)
             ret = avcodec_receive_frame(avctx, frame);
                     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
             {
-                av_frame_free(frame);
+                av_frame_free(&frame);
                 break;
             }
             static int count = 0;
