@@ -34,37 +34,36 @@ class AudioDecoder():
         ret = avcodec_open2(self.__avctx, codec, None)
         assert(ret == 0)
 
-    def get_frame(self):
-        pkt = c_void_p(None)
-        pkt.value = av_packet_alloc()
-        if(av_read_frame(self.__ic, pkt) < 0):
+    def __iter__(self):
+        while True:
+            pkt = c_void_p(None)
+            pkt.value = av_packet_alloc()
+            if(av_read_frame(self.__ic, pkt)<0):
+                av_packet_free(byref(pkt))
+                break
+            ret = avcodec_send_packet(self.__avctx, pkt)
             av_packet_free(byref(pkt))
-            raise IOError("Read error, may reach end of file.")
-        ret = avcodec_send_packet(self.__avctx, pkt)
-        av_packet_free(byref(pkt))
-        if(ret < 0 ):
-            av_packet_free(byref(pkt))
-            raise IOError("Decoder don't accept the packet.\navcodec_send_packet returned: %d"%ret)
+            if (ret < 0):
+                break
 
-        avframe = c_void_p(None)
-        avframe.value = av_frame_alloc()
-        ret = avcodec_receive_frame(self.__avctx, avframe)
-        if (ret == EAGAIN or ret == AVERROR_EOF):
-            av_frame_free(byref(avframe))
-            return None
-        
-        frame = AudioFrame(avframe)
-        frame1 = get_frame_data_from_avframe(self.__avctx, avframe)
-        
-        # FIXME
-        frame.data          = frame1.data
-        frame.len           = frame1.len
-        frame.sample_rate   = frame1.sample_rate
-        frame.samples       = frame1.samples
-        frame.format        = frame1.format
+            while (ret >= 0):
+                avframe = c_void_p(None)
+                avframe.value = av_frame_alloc()
+                ret = avcodec_receive_frame(self.__avctx, avframe)
+                if (ret == EAGAIN or ret == AVERROR_EOF):
+                    av_frame_free(byref(avframe))
+                    break
 
-        av_packet_free(byref(pkt))
-        return frame
+                frame = AudioFrame(avframe)
+                frame1 = get_frame_data_from_avframe(self.__avctx, avframe)
+                # FIXME
+                frame.data          = frame1.data
+                frame.len           = frame1.len
+                frame.sample_rate   = frame1.sample_rate
+                frame.samples       = frame1.samples
+                frame.format        = frame1.format
+
+                yield frame
 
     def __del__(self):
         avcodec_free_context(byref(self.__avctx))
@@ -74,18 +73,10 @@ class AudioDecoder():
 if __name__ == '__main__':
     capture = AudioDecoder(b"/home/bmi/Desktop/00001.m4a")
     count = 0
-    while(True):
-        try:
-            frame = capture.get_frame()
-        except Exception as e:
-            print(e)
-            break
-        if(not frame):
-            continue
-        else:
-            data = []
-            # read frame data
-            for i in range(frame.len):
-                data.append(frame.data[i])
-            count += 1
+    for frame in capture:
+        # read frame data
+        data = []
+        for i in range(frame.len):
+            data.append(frame.data[i])
+        count += 1
     print(count)
