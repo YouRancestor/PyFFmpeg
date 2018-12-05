@@ -4,22 +4,13 @@ from ctypes.util import find_library
 
 sz_avcodec = find_library("avcodec")
 libavcodec = CDLL(sz_avcodec)
-print (sz_avcodec, libavcodec)
+# print (sz_avcodec, libavcodec)
 sz_avformat = find_library("avformat")
 libavformat = CDLL(sz_avformat)
-print (libavformat)
+# print (libavformat)
 sz_avutil = find_library("avutil")
 libavutil = CDLL(sz_avutil)
-print (libavutil)
-
-def Version():
-    sz_ver = libavcodec.avcodec_version()
-    return sz_ver
-
-import os
-sz_ff_helper = os.environ['PWD']+'/libffmpeg-helper.so'
-libffhelper = CDLL(sz_ff_helper)
-print(libffhelper)
+# print (libavutil)
 
 # void av_register_all();
 libavformat.av_register_all.argtypes = []
@@ -109,6 +100,10 @@ def avformat_free_context(p_ic: c_void_p):
 EAGAIN = -11
 AVERROR_EOF = -541478725
 
+
+
+
+
 if __name__ == '__main__':
     # ver = Version()
     # print(ver)
@@ -117,6 +112,10 @@ if __name__ == '__main__':
     # frame = libffhelper.test()
     # print(frame.len)
     from ffhelper import MyAudioFrame
+    import os
+    sz_ff_helper = os.environ['PWD']+'/libffmpeg-helper.so'
+    libffhelper = CDLL(sz_ff_helper)
+    print(libffhelper)
 
     sz = b'/home/bmi/Desktop/00001.m4a'
     print('media file name: ', sz)

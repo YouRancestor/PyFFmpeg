@@ -82,5 +82,9 @@ if __name__ == '__main__':
         if(not frame):
             continue
         else:
+            data = []
+            # read frame data
+            for i in range(frame.len):
+                data.append(frame.data[i])
             count += 1
     print(count)

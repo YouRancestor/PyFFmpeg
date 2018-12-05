@@ -28,6 +28,7 @@ int main(int argc, char**argv)
 
         int ret = avcodec_send_packet(avctx,pkt);
         if (ret < 0) {
+            av_packet_free(&pkt);
             break;
         }
 
