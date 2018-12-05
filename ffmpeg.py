@@ -60,8 +60,9 @@ def av_packet_free(pp_pkt: POINTER(c_void_p)):
 
 # int av_read_frame(AVFormatContext *s, AVPacket *pkt);
 libavformat.av_read_frame.argtypes = [c_void_p, c_void_p]
+libavformat.av_read_frame.restype = c_int
 def av_read_frame(p_ic: c_void_p, p_pkt: c_void_p):
-    libavformat.av_read_frame(p_ic, p_pkt)
+    return libavformat.av_read_frame(p_ic, p_pkt)
 
 # int av_read_frame(AVFormatContext *s, AVPacket *pkt);
 libavcodec.avcodec_send_packet.argtypes = [c_void_p, c_void_p]

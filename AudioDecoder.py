@@ -37,10 +37,11 @@ class AudioDecoder():
     def get_frame(self):
         pkt = c_void_p(None)
         pkt.value = av_packet_alloc()
-        if(av_read_frame(self.__ic, pkt)):
+        if(av_read_frame(self.__ic, pkt) < 0):
             av_packet_free(byref(pkt))
             raise IOError("Read error, may reach end of file.")
         ret = avcodec_send_packet(self.__avctx, pkt)
+        av_packet_free(byref(pkt))
         if(ret < 0 ):
             av_packet_free(byref(pkt))
             raise IOError("Decoder don't accept the packet.\navcodec_send_packet returned: %d"%ret)
